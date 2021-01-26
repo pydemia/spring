@@ -92,3 +92,128 @@ spring:
     name: myapp
 ```
 
+
+---
+
+## On Kubernetes
+
+https://www.baeldung.com/spring-cloud-kubernetes
+
+### Context: ConfigMap
+
+:warning: **The NAME of the `ConfigMap` should matches the name of the application.
+
+* From `application.yml`:
+
+```yml
+spring:
+  cloud:
+    kubernetes:
+      reload:
+        enabled: true
+      secrets
+        name: mdb-secret
+spring:
+  data:
+    mongodb:
+      host: mongodb-service
+      port: 27017
+      database: ${MONGO_DATABASE}
+      username: ${MONGO_USERNAME}
+      password: ${MONGO_PASSWORD}
+```
+
+```yml
+apiVersion: v1 by d
+kind: ConfigMap
+metadata:
+  name: spring-service
+data:
+  application.yml: |-
+    spring:
+      cloud:
+        kubernetes:
+          reload:
+            enabled: true
+          secrets
+            name: mdb-secret
+    spring:
+      data:
+        mongodb:
+          host: mongodb-service
+          port: 27017
+          database: ${MONGO_DATABASE}
+          username: ${MONGO_USERNAME}
+          password: ${MONGO_PASSWORD}
+```
+
+
+
+### Context: Secrets
+
+* `application.yml`:
+
+```yml
+spring:
+  cloud:
+    kubernetes:
+      reload:
+        enabled: true
+      secrets
+        name: db-secret
+spring:
+  data:
+    mongodb:
+      host: mongodb-service
+      port: 27017
+      database: ${MONGO_DATABASE}
+      username: ${MONGO_USERNAME}
+      password: ${MONGO_PASSWORD}
+```
+
+* To `ConfigMap`:
+
+```yml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mdb-secret
+data:
+  username: xxxx
+  password: xxxx
+```
+
+and the pod env is:
+
+``yml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: spring-service
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        service: spring-service
+      name: spring
+    spec:
+      containers:
+      - image: javaapplication:latest
+        name: springservice
+        env:
+          - name: MONGO_DATABASE
+            value: mdb
+          - name: MONGO_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: mdb-secret
+                key: username
+          - name: MONGO_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mdb-secret
+                key: password
+```
+
+and 

@@ -215,5 +215,3 @@ spec:
                 name: mdb-secret
                 key: password
 ```
-
-and 
